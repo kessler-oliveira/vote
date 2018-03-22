@@ -14,12 +14,6 @@ provider:
         - dynamodb:DeleteItem
       Resource: 
         - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.VOTES_TABLE}"
-    - Effect: Allow
-      Action:
-        - dynamodb:Scan
-        - dynamodb:PutItem
-        - dynamodb:DeleteItem
-      Resource: 
         - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.AGREGATE_VOTES_TABLE}"
 
 functions:

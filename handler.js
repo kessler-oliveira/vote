@@ -39,6 +39,14 @@ module.exports.vote = (event, context, callback) => {
         return item.vote;
       });
 
+      console.log(keys);
+
+      console.log(params.Item.vote);
+
+      console.log(keys.includes(params.Item.vote));
+
+      console.log(params);
+
       if(data.Count < 3) {
         dynamoDb.put(params, (error) => {
           if (error) {
@@ -50,7 +58,7 @@ module.exports.vote = (event, context, callback) => {
           response.body = JSON.stringify({ message: "Vote saved successfully" });
           callback(null, response);
         });
-      } else if (keys.includes(params.item.vote)) {
+      } else if (keys.includes(params.Item.vote)) {
         dynamoDb.put(params, (error) => {
           if (error) {
             response.statusCode = 500;
@@ -64,6 +72,7 @@ module.exports.vote = (event, context, callback) => {
       } else {
         response.statusCode = 500;
         response.body = JSON.stringify({ error: "it is possible to add up to 3 different votes", votes: keys });
+        callback(null, response);
       }
     } else {
       dynamoDb.put(params, (error) => {
@@ -82,38 +91,37 @@ module.exports.vote = (event, context, callback) => {
 
 module.exports.trigger = (event, context, callback) => {
 
-  console.log(event);
+  if (event.Records[0].eventName == "INSERT") {
 
-  const params = {
-    TableName: VOTES_TABLE,
-    FilterExpression : 'vote = :name',
-    ExpressionAttributeValues : {':name' : event.Records[0].dynamodb.NewImage.vote.S}
-  };
-
-  console.log(params);
-
-  dynamoDb.scan(params, (error, data) => {
-
-    var vote = {
-      'vote': event.Records[0].dynamodb.NewImage.vote.S,
-      'count': data.Count
+    const params = {
+      TableName: VOTES_TABLE,
+      FilterExpression : 'vote = :name',
+      ExpressionAttributeValues : {':name' : event.Records[0].dynamodb.NewImage.vote.S}
     };
-
-    console.log(vote);
-
-    const insert = {
-      TableName: AGREGATE_VOTES_TABLE,
-      Item: vote
-    };
-
-    dynamoDb.put(insert, (error) => {
-      if (error) {
-        console.log("Could not save vote in trigger" );
-      } else {
-        console.log({ message: "Vote saved successfully in trigger" });
-      }
-    });
-  });
+  
+    console.log(params);
+  
+    dynamoDb.scan(params, (error, data) => {
+  
+      var vote = {
+        'vote': event.Records[0].dynamodb.NewImage.vote.S,
+        'count': data.Count
+      };
+  
+      const insert = {
+        TableName: AGREGATE_VOTES_TABLE,
+        Item: vote
+      };
+  
+      dynamoDb.put(insert, (error) => {
+        if (error) {
+          console.log("Could not save vote in trigger" );
+        } else {
+          console.log({ message: "Vote saved successfully in trigger" });
+        }
+      });
+    }); 
+  }
 }
 
 module.exports.votes = (event, context, callback) => {

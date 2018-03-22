@@ -9,7 +9,9 @@ Terraform v0.11.5 or later
 + provider.local v1.1.0
 
 Node v4.2.6 or later
+
 NPM 3.5.2 or later
+
 Serverless 1.26.1 or later
 
 AWS Account
